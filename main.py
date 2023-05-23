@@ -13,7 +13,7 @@ delta = {
     pg.K_RIGHT: (+2, 0),
     }
 
-accs = [a for a in range(1, 11)] 
+
 
 def check_bound(scr_rect: pg.Rect, obj_rect: pg.Rect):
     """
@@ -30,21 +30,38 @@ def check_bound(scr_rect: pg.Rect, obj_rect: pg.Rect):
         tate = False
     return yoko, tate
 
+def check_goal_in(scr_rect: pg.Rect, obj_rect: pg.Rect):
+    """
+    玉がゴールに入ったか否か、ゴールに入ったとしたらどちらのゴールかを判定する.
+    引数：画面SurfaceのRect
+    引数：玉のRect
+    戻り値：それぞれのゴールの衝突判定 right: True or False / left: True or False
+    """
+    
+    goal_in_left = False
+    goal_in_right = False
+    if (obj_rect.left <= scr_rect.left) and (obj_rect.top <= scr_rect.centery + 100) and (obj_rect.bottom >= scr_rect.centery - 100):
+        goal_in_left = True
+    if (obj_rect.right >= scr_rect.right) and (obj_rect.top <= scr_rect.centery + 100) and (obj_rect.bottom >= scr_rect.centery - 100):
+        goal_in_right = True
+    return goal_in_left, goal_in_right
+    
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((1600, 900))
     clock = pg.time.Clock()
     bg_img = pg.image.load("ProjExD2023/ex05/fig/pg_bg.jpg")
-    kk_img = pg.image.load("ProjExD2023/ex05/fig/bluepad.png")
-    kk_img = pg.transform.rotozoom(kk_img, 0, 2.0)
-    kk_rect = kk_img.get_rect()
-    kk_rect.center = 900, 400
+    bp_img = pg.image.load("ProjExD2023/ex05/fig/bluepad.png")
+    bp_img = pg.transform.rotozoom(bp_img, 0, 2.0)
+    bp_rect = bp_img.get_rect()
+    bp_rect.center = 400, 400
     
-    bb_img = pg.Surface((20,20))
-    pg.draw.circle(bb_img, (255,0,0), (10,10), 10)
-    bb_img.set_colorkey((0, 0, 0))
-    bb_rect = bb_img.get_rect()
-    bb_rect.center = random.randint(0, 1600), random.randint(0, 900)
+    pk_img = pg.Surface((20,20))
+    pg.draw.circle(pk_img, (255,0,0), (10,10), 10)
+    pk_img.set_colorkey((0, 0, 0))
+    pk_rect = pk_img.get_rect()
+    pk_rect.center = random.randint(0, 1600), random.randint(0, 900)
     vx, vy = +1, +1
     fonto  = pg.font.Font(None, 80)
     tmr = 0
@@ -60,24 +77,30 @@ def main():
         key_lst = pg.key.get_pressed()
         for k, mv in delta.items():
             if key_lst[k]:
-                kk_rect.move_ip(mv)
-        if check_bound(screen.get_rect(), kk_rect) != (True, True):
+                bp_rect.move_ip(mv)
+        if check_bound(screen.get_rect(), bp_rect) != (True, True):
             for k, mv in delta.items():
                 if key_lst[k]:
-                    kk_rect.move_ip(-mv[0], -mv[1])
-        screen.blit(kk_img, kk_rect) 
+                    bp_rect.move_ip(-mv[0], -mv[1])
+        screen.blit(bp_img, bp_rect) 
         
-        yoko, tate = check_bound(screen.get_rect(), bb_rect)
+        yoko, tate = check_bound(screen.get_rect(), pk_rect)
         if not yoko:
             vx *= -1
-            print("yoko")
         if not tate:
             vy *= -1
-            print("tate")
-            
-        bb_rect.move_ip(vx, vy)
-        screen.blit(bb_img, bb_rect)
-                
+        pk_rect.move_ip(vx, vy)
+        
+        
+        g_left, g_right = check_goal_in(screen.get_rect(), pk_rect)
+        if g_left == True:
+            print("a")
+            break
+        if g_right == True:
+            print("b")
+            break
+        
+        screen.blit(pk_img, pk_rect)
         pg.display.update()
         clock.tick(500)
 
