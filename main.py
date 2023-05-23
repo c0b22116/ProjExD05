@@ -1,19 +1,17 @@
-import random
+import pygame as pg
 import sys
 import time
+import random
 
-import pygame as pg
-
-
-
-delta = {
-    pg.K_UP: (0, -2),
-    pg.K_DOWN: (0, +2),
-    pg.K_LEFT: (-2, 0),
-    pg.K_RIGHT: (+2, 0),
-    }
-
-
+white = (255,255,255)
+black = (0,0,0)
+green = (0,150,0)
+red = (255,0,0)
+blue = (0,0,255)
+light_blue = (147,251,253)
+width = 1600
+hight = 900
+goalheight = 50 #ゴールのおおきさ
 
 def check_bound(scr_rect: pg.Rect, obj_rect: pg.Rect):
     """
@@ -30,92 +28,78 @@ def check_bound(scr_rect: pg.Rect, obj_rect: pg.Rect):
         tate = False
     return yoko, tate
 
-def check_goal_in(scr_rect: pg.Rect, obj_rect: pg.Rect, goalheight):
-    """
-    玉がゴールに入ったか否か、ゴールに入ったとしたらどちらのゴールかを判定する.
-    引数：画面SurfaceのRect
-    引数：玉のRect
-    引数：ゴールの高さ
-    戻り値：それぞれのゴールの衝突判定 right: True or False / left: True or False
-    """
-    
-    goal_in_left = False
-    goal_in_right = False
-    if (obj_rect.left <= scr_rect.left) and (obj_rect.top <= scr_rect.centery + goalheight) and (obj_rect.bottom >= scr_rect.centery - goalheight):
-        goal_in_left = True
-    if (obj_rect.right >= scr_rect.right) and (obj_rect.top <= scr_rect.centery + goalheight) and (obj_rect.bottom >= scr_rect.centery - goalheight):
-        goal_in_right = True
-    return goal_in_left, goal_in_right
+class playerlect_1:
+
+    _delta = {
+        pg.K_UP: (0, -1),
+        pg.K_DOWN: (0, +1),
+        pg.K_LEFT: (-1, 0),
+        pg.K_RIGHT: (+1, 0),
+    }
     
 
+    def __init__(self, xy: tuple[int,int]): 
+        self._img = pg.transform.rotozoom(pg.image.load(f"ProjExD2023/ex05/fig/redpad.png"),0, 2.0)
+        self._rct = self._img.get_rect()
+        self._rct.center = xy
+
+
+    def update(self,key_lst: list[bool], screen: pg.Surface):
+        for k,mv in __class__._delta.items():
+            if key_lst[k]:
+                self._rct.move_ip(mv)
+
+        screen.blit(self._img,self._rct)
+        
+
 def main():
-    pg.display.set_caption("逃げろ！こうかとん")
-    screen = pg.display.set_mode((1600, 900))
+    pg.display.set_caption("Air-hockey")
+    screen = pg.display.set_mode((1600,900))
+    pl1 = playerlect_1((width-300,hight/2))
     clock = pg.time.Clock()
-    bg_img = pg.image.load("ProjExD2023/ex05/fig/pg_bg.jpg")
-    bp_img = pg.image.load("ProjExD2023/ex05/fig/bluepad.png")
-    bp_img = pg.transform.rotozoom(bp_img, 0, 2.0)
-    bp_rect = bp_img.get_rect()
-    bp_rect.center = 400, 400
-    goalheight = 50
-    goalwidth = 20
     
+    bg_img = pg.image.load("ProjExD2023/ex05/fig/pg_bg.jpg")
     pk_img = pg.Surface((20,20))
     pg.draw.circle(pk_img, (255,0,0), (10,10), 10)
     pk_img.set_colorkey((0, 0, 0))
     pk_rect = pk_img.get_rect()
     pk_rect.center = random.randint(0, 1600), random.randint(0, 900)
     vx, vy = +1, +1
-    fonto  = pg.font.Font(None, 80)
-    tmr = 0
+    
 
     while True:
         for event in pg.event.get():
-            if event.type == pg.QUIT: 
-                return 0
-        tmr += 1
+            if event.type == pg.QUIT: return
+            
         screen.blit(bg_img, [0, 0])
-        black = [0,0,0]
-        screen.fill(black)
-        
-        
-        key_lst = pg.key.get_pressed()
-        for k, mv in delta.items():
-            if key_lst[k]:
-                bp_rect.move_ip(mv)
-        if check_bound(screen.get_rect(), bp_rect) != (True, True):
-            for k, mv in delta.items():
-                if key_lst[k]:
-                    bp_rect.move_ip(-mv[0], -mv[1])
-        screen.blit(bp_img, bp_rect) 
-        
+
+        screen.fill((0,0,0))
+        pg.draw.line(screen, blue,(0,0), (screen.get_width()/2 - 5,0) ,20)
+        pg.draw.line(screen, blue,(0,screen.get_height()), (screen.get_width()/2 - 5,screen.get_height()) ,20)
+        pg.draw.line(screen, red, (screen.get_width()/2+5,0), (screen.get_width() ,0) ,20)
+        pg.draw.line(screen, red, (screen.get_width()/2 + 5,screen.get_height()) , (screen.get_width(),screen.get_height()) ,20)
+        pg.draw.line(screen,white,(width/2,0),(width/2,hight),5)
+        pg.draw.line(screen, (0, 0, 255), (0,0), (0,screen.get_height()/2-goalheight) ,5)
+        pg.draw.line(screen, (0, 0, 255), (0,screen.get_height()/2 + goalheight), (0,screen.get_height()) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),0), (screen.get_width(),screen.get_height()/2-goalheight) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),screen.get_height()/2 + goalheight), (screen.get_width(),screen.get_height()) ,5)
+
         yoko, tate = check_bound(screen.get_rect(), pk_rect)
         if not yoko:
             vx *= -1
         if not tate:
             vy *= -1
+            
+        
         pk_rect.move_ip(vx, vy)
-        
-        
-        g_left, g_right = check_goal_in(screen.get_rect(), pk_rect, goalheight)
-        if g_left == True:
-            break
-        if g_right == True:
-            break
-        
-        pg.draw.line(screen, (0, 0, 255),(0,0), (screen.get_width()/2 - 5,0) ,5)
-        pg.draw.line(screen, (0, 0, 255),(0,screen.get_height()), (screen.get_width()/2 - 5,screen.get_height()) ,5)
-        pg.draw.line(screen, (255, 0, 0), (screen.get_width()/2+5,0), (screen.get_width() ,0) ,5)
-        pg.draw.line(screen, (255, 0, 0), (screen.get_width()/2 + 5,screen.get_height()) , (screen.get_width(),screen.get_height()) ,5)
-        pg.draw.line(screen, (0, 0, 255), (0,0), (0,screen.get_height()/2-goalheight) ,5)
-        pg.draw.line(screen, (0, 0, 255), (0,screen.get_height()/2 + goalheight), (0,screen.get_height()) ,5)
-        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),0), (screen.get_width(),screen.get_height()/2-goalheight) ,5)
-        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),screen.get_height()/2 + goalheight), (screen.get_width(),screen.get_height()) ,5)
-        
-        
         screen.blit(pk_img, pk_rect)
+        
+        key_lst = pg.key.get_pressed()
+        pl1.update(key_lst,screen)
+
         pg.display.update()
-        clock.tick(500)
+        clock.tick(1000)
+        
 
 
 if __name__ == "__main__":
