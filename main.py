@@ -30,19 +30,20 @@ def check_bound(scr_rect: pg.Rect, obj_rect: pg.Rect):
         tate = False
     return yoko, tate
 
-def check_goal_in(scr_rect: pg.Rect, obj_rect: pg.Rect):
+def check_goal_in(scr_rect: pg.Rect, obj_rect: pg.Rect, goalheight):
     """
     玉がゴールに入ったか否か、ゴールに入ったとしたらどちらのゴールかを判定する.
     引数：画面SurfaceのRect
     引数：玉のRect
+    引数：ゴールの高さ
     戻り値：それぞれのゴールの衝突判定 right: True or False / left: True or False
     """
     
     goal_in_left = False
     goal_in_right = False
-    if (obj_rect.left <= scr_rect.left) and (obj_rect.top <= scr_rect.centery + 100) and (obj_rect.bottom >= scr_rect.centery - 100):
+    if (obj_rect.left <= scr_rect.left) and (obj_rect.top <= scr_rect.centery + goalheight) and (obj_rect.bottom >= scr_rect.centery - goalheight):
         goal_in_left = True
-    if (obj_rect.right >= scr_rect.right) and (obj_rect.top <= scr_rect.centery + 100) and (obj_rect.bottom >= scr_rect.centery - 100):
+    if (obj_rect.right >= scr_rect.right) and (obj_rect.top <= scr_rect.centery + goalheight) and (obj_rect.bottom >= scr_rect.centery - goalheight):
         goal_in_right = True
     return goal_in_left, goal_in_right
     
@@ -56,6 +57,8 @@ def main():
     bp_img = pg.transform.rotozoom(bp_img, 0, 2.0)
     bp_rect = bp_img.get_rect()
     bp_rect.center = 400, 400
+    goalheight = 50
+    goalwidth = 20
     
     pk_img = pg.Surface((20,20))
     pg.draw.circle(pk_img, (255,0,0), (10,10), 10)
@@ -72,6 +75,8 @@ def main():
                 return 0
         tmr += 1
         screen.blit(bg_img, [0, 0])
+        black = [0,0,0]
+        screen.fill(black)
         
         
         key_lst = pg.key.get_pressed()
@@ -92,13 +97,21 @@ def main():
         pk_rect.move_ip(vx, vy)
         
         
-        g_left, g_right = check_goal_in(screen.get_rect(), pk_rect)
+        g_left, g_right = check_goal_in(screen.get_rect(), pk_rect, goalheight)
         if g_left == True:
-            print("a")
             break
         if g_right == True:
-            print("b")
             break
+        
+        pg.draw.line(screen, (0, 0, 255),(0,0), (screen.get_width()/2 - 5,0) ,5)
+        pg.draw.line(screen, (0, 0, 255),(0,screen.get_height()), (screen.get_width()/2 - 5,screen.get_height()) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width()/2+5,0), (screen.get_width() ,0) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width()/2 + 5,screen.get_height()) , (screen.get_width(),screen.get_height()) ,5)
+        pg.draw.line(screen, (0, 0, 255), (0,0), (0,screen.get_height()/2-goalheight) ,5)
+        pg.draw.line(screen, (0, 0, 255), (0,screen.get_height()/2 + goalheight), (0,screen.get_height()) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),0), (screen.get_width(),screen.get_height()/2-goalheight) ,5)
+        pg.draw.line(screen, (255, 0, 0), (screen.get_width(),screen.get_height()/2 + goalheight), (screen.get_width(),screen.get_height()) ,5)
+        
         
         screen.blit(pk_img, pk_rect)
         pg.display.update()
